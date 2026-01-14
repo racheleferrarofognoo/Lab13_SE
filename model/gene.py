@@ -1,0 +1,15 @@
+from dataclasses import dataclass
+
+@dataclass
+
+class Gene:
+    id: int
+    funzione : str
+    essenziale: str
+    cromosoma: str
+
+    def __str__(self):
+        return f"{self.id}"
+
+    def __hash__(self):
+        return hash(self.id)
