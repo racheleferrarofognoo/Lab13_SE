@@ -5,54 +5,50 @@ from database.dao import DAO
 
 class Model:
     def __init__(self):
-        self.Grafo = nx.MultiDiGraph()
-        self.dizionario_geni ={}
-        self.lista_geni = DAO.read_all_geni()
-        for gene in self.lista_geni:
-            self.dizionario_geni[gene.id] = gene
+        self.G = nx.DiGraph()
+        self.dao = DAO()
+        self.id_map = {}
+        self.nodi = []
 
-    def creaGrafo(self):
-        lista_interazioni = DAO.read_all_interazioni()
-        print(self.dizionario_geni)
-        print(len(lista_interazioni))
+    def build_grafo(self):
+        self.G.clear()
+        cromosomi = self.dao.read_all_cromosomi()
+        for cromosoma in cromosomi:
+            self.G.add_node(cromosoma)
 
-        val_edges = {} # key: (g1,g2) val: float - correlazione
-        for interazione in lista_interazioni:
-            if interazione.id_gene1 not in self.dizionario_geni.keys() or interazione.id_gene2 not in self.dizionario_geni.keys():
-                continue
-            g1 = self.dizionario_geni[interazione.id_gene1]
-            g2 = self.dizionario_geni[interazione.id_gene2]
-            if (g1.cromosoma, g2.cromosoma) not in val_edges.keys():
-                val_edges[(g1.cromosoma, g2.cromosoma)] = interazione.correlazione
-            else:
-                val_edges[(g1.cromosoma, g2.cromosoma)] += interazione.correlazione
+        edges = {}
+        archi = self.dao.read_connessioni()
 
-        for interazione in lista_interazioni:
-            if interazione.id_gene1 not in self.dizionario_geni.keys() or interazione.id_gene2 not in self.dizionario_geni.keys():
-                continue
-            g1 = self.dizionario_geni[interazione.id_gene1]
-            g2 = self.dizionario_geni[interazione.id_gene2]
-            if g1.cromosoma != g2.cromosoma:
-                if not self.Grafo.has_edge(g1.cromosoma, g2.cromosoma):
-                    self.Grafo.add_edge(g1.cromosoma, g2.cromosoma, weight = val_edges[g1.cromosoma,g2.cromosoma])
-                #else:
+        for a in archi:
+            # Aggiungiamo l'arco orientato con l'attributo 'weight'
+            self.G.add_edge(a[0], a[1], weight=float(a[2]))
 
-                   # self.Grafo[g1.cromosoma][g2.cromosoma]["peso"] += interazione.correlazione
 
-    def cerca_numero_archi(self):
-        return len(self.Grafo.edges())
+    def dettagli(self):
+        return self.G.number_of_nodes(), self.G.number_of_edges()
 
-    def cerca_numero_nodi(self):
-        return self.Grafo.number_of_nodes()
+    def min_max(self):
+        peso_max = -100000
+        peso_min = float('inf')
+        for u,v,p in self.G.edges(data=True):
+            peso = p['weight']
+            if peso > peso_max:
+                peso_max = peso
+            if peso < peso_min:
+                peso_min = peso
+        return peso_max, peso_min
 
-    def massimo_minimo_peso (self):
-        massimo = 0.0
-        minimo = float('inf')
-        for u,v, weight in self.Grafo.edges(data='weight'):
-            if weight > massimo:
-                massimo = weight
-            if weight < minimo:
-                minimo = weight
-        return minimo, massimo
+    def conta_archi(self, soglia):
+
+        num_archi_minori = 0
+        num_archi_maggiori = 0
+        for u,v,p in self.G.edges(data=True):
+            peso = p['weight']
+            if peso > soglia:
+                num_archi_maggiori += 1
+            elif peso < soglia:
+                num_archi_minori += 1
+        return num_archi_minori, num_archi_maggiori
+
 
 

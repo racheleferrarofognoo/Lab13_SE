@@ -46,7 +46,7 @@ class View:
         self.lista_visualizzazione_2 = ft.ListView(expand=1, spacing=10, padding=20, auto_scroll=True)
 
         # Sezione 3
-        self.btn_ricerca = ft.ElevatedButton(text="Cerca Cammino", on_click=self.controller.handle_ricerca)
+        self.btn_ricerca = ft.ElevatedButton(text="Cerca Cammino")
         self.lista_visualizzazione_3 = ft.ListView(expand=1, spacing=10, padding=20, auto_scroll=True)
 
         # --- Toggle Tema ---
